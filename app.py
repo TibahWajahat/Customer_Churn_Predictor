@@ -9,70 +9,87 @@ import time
 # PAGE CONFIG
 # ------------------------------------------------
 st.set_page_config(
-    page_title="Customer Churn AI Dashboard",
+    page_title="Customer Churn Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
 # ------------------------------------------------
-# THEME SWITCHER
+# THEME SWITCH
 # ------------------------------------------------
-st.sidebar.title("🎨 Dashboard Theme")
+st.sidebar.title("🎨 Appearance")
 
 theme = st.sidebar.radio(
-    "Select Mode",
+    "Choose Theme",
     ["🌙 Dark Mode", "☀ Light Mode"]
 )
 
 if theme == "☀ Light Mode":
-    bg = "#f8fafc"
-    text = "#111"
+    bg = "#f5f7fb"
+    text = "#1f2937"
     card = "rgba(255,255,255,0.9)"
 else:
-    bg = "#020617"
-    text = "white"
+    bg = "#0f172a"
+    text = "#e2e8f0"
     card = "rgba(255,255,255,0.05)"
 
 # ------------------------------------------------
-# CUSTOM STYLE
+# GLOBAL STYLING
 # ------------------------------------------------
 st.markdown(f"""
 <style>
 
 .stApp {{
-background:{bg};
+background-color: {bg};
 color:{text};
 }}
 
 .main-title {{
-font-size:56px;
-font-weight:900;
+font-size:50px;
+font-weight:800;
 text-align:center;
-background:linear-gradient(90deg,#ff2e9b,#ff7acb);
--webkit-background-clip:text;
-color:transparent;
+margin-bottom:10px;
 }}
 
 .subtitle {{
 text-align:center;
-font-size:22px;
+font-size:20px;
 margin-bottom:30px;
+opacity:0.8;
 }}
 
 .card {{
 background:{card};
-padding:25px;
-border-radius:16px;
-border:1px solid rgba(255,255,255,0.1);
+padding:30px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,0.08);
+backdrop-filter: blur(10px);
+margin-bottom:20px;
+}}
+
+.metric-box {{
+background:{card};
+padding:20px;
+border-radius:12px;
+text-align:center;
+border:1px solid rgba(255,255,255,0.08);
 }}
 
 .stButton>button {{
-background:linear-gradient(90deg,#ff2e9b,#ff7acb);
+background:#6366f1;
 color:white;
-border:none;
 border-radius:8px;
+border:none;
 height:40px;
 font-weight:600;
+}}
+
+section[data-testid="stSidebar"] {{
+background:#111827;
+}}
+
+section[data-testid="stSidebar"] * {{
+color:white !important;
 }}
 
 </style>
@@ -82,12 +99,12 @@ font-weight:600;
 # TITLE
 # ------------------------------------------------
 st.markdown(
-'<p class="main-title">📊 Customer Churn Prediction Dashboard</p>',
+'<div class="main-title">📊 Customer Churn Prediction Dashboard</div>',
 unsafe_allow_html=True
 )
 
 st.markdown(
-'<p class="subtitle">Predict telecom customer churn using Machine Learning</p>',
+'<div class="subtitle">Predict telecom customer churn using Machine Learning</div>',
 unsafe_allow_html=True
 )
 
@@ -99,12 +116,12 @@ st.markdown(f"""
 
 ### 👩‍💻 Project Information
 
-Customer Churn Prediction AI Dashboard
+This interactive dashboard predicts **telecom customer churn probability** using a machine learning model.
 
-Built with:
+**Technologies used**
 
 • Python  
-• Machine Learning  
+• Scikit-Learn  
 • Streamlit  
 • Plotly  
 
@@ -112,8 +129,6 @@ Built with:
 
 </div>
 """, unsafe_allow_html=True)
-
-st.markdown("---")
 
 # ------------------------------------------------
 # LOAD MODEL
@@ -131,9 +146,9 @@ except:
 # ------------------------------------------------
 st.sidebar.title("📋 Customer Details")
 
-tenure = st.sidebar.slider("Tenure", 0, 72, 12)
-monthly = st.sidebar.slider("Monthly Charges", 0, 200, 70)
-total = st.sidebar.slider("Total Charges", 0, 10000, 1500)
+tenure = st.sidebar.slider("Tenure (Months)",0,72,12)
+monthly = st.sidebar.slider("Monthly Charges ($)",0,200,70)
+total = st.sidebar.slider("Total Charges ($)",0,10000,1500)
 
 # ------------------------------------------------
 # INPUT DATA
@@ -155,19 +170,14 @@ scaled = scaler.transform(input_df)
 # ------------------------------------------------
 # PREDICTION
 # ------------------------------------------------
-if st.sidebar.button("🚀 Predict Churn"):
+st.markdown("### 🔍 Predict Customer Churn")
 
-    st.toast("🤖 AI analyzing customer data...")
+if st.button("Predict Churn"):
 
-    progress = st.progress(0)
-
-    for i in range(100):
-        time.sleep(0.01)
-        progress.progress(i + 1)
+    with st.spinner("Analyzing customer data..."):
+        time.sleep(2)
 
     prob = model.predict_proba(scaled)[0][1]
-
-    st.toast("✅ Prediction Complete")
 
     col1, col2 = st.columns(2)
 
@@ -187,6 +197,7 @@ if st.sidebar.button("🚀 Predict Churn"):
             f"{prob*100:.2f}%"
         )
 
+    # Gauge chart
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=prob*100,
@@ -194,12 +205,12 @@ if st.sidebar.button("🚀 Predict Churn"):
         gauge={'axis':{'range':[0,100]}}
     ))
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig,use_container_width=True)
 
 # ------------------------------------------------
 # FEATURE IMPORTANCE
 # ------------------------------------------------
-st.header("📊 Feature Importance")
+st.markdown("### 📊 Feature Importance")
 
 try:
 
@@ -215,10 +226,11 @@ try:
         x="Importance",
         y="Feature",
         orientation="h",
-        color="Importance"
+        color="Importance",
+        template="plotly_white" if theme=="☀ Light Mode" else "plotly_dark"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig,use_container_width=True)
 
 except:
     st.info("Feature importance unavailable")
@@ -226,7 +238,7 @@ except:
 # ------------------------------------------------
 # HEATMAP
 # ------------------------------------------------
-st.header("📊 Customer Churn Heatmap")
+st.markdown("### 📊 Customer Data Correlation")
 
 try:
 
@@ -237,10 +249,11 @@ try:
     fig = px.imshow(
         corr,
         text_auto=True,
-        color_continuous_scale="RdBu"
+        color_continuous_scale="RdBu",
+        template="plotly_white" if theme=="☀ Light Mode" else "plotly_dark"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig,use_container_width=True)
 
 except:
     st.warning("Dataset not found")
@@ -250,11 +263,12 @@ except:
 # ------------------------------------------------
 st.markdown("---")
 
-st.markdown("""
+st.markdown(
+"""
 ### 🌐 About
 
-This dashboard predicts **telecom customer churn probability**
-using machine learning models.
+This dashboard helps businesses **identify customers at risk of leaving** by using predictive analytics.
 
 👩‍💻 Developed by **Tibah Wajahat**
-""")
+"""
+)
